@@ -1,0 +1,3 @@
+ISTO É APENAS UM TESTE 
+
+curl -X POST "http://localhost:8001/upload/" -F "file=/home/vicrrs/Projetos_github/FileOpsFlow/archives/teste.txt"
