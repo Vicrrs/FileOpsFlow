@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5673:5672"  # AMQP protocol
+      - "15673:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+    volumes:
+      - "rabbitmq_data:/var/lib/rabbitmq"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  web:
+    build: .
+    ports:
+      - "8001:8000"
+    volumes:
+      - "./app:/code/app"
+      - "./uploads:/code/uploads"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A app.worker worker --loglevel=info
+    volumes:
+      - "./app:/code/app"
+      - "./uploads:/code/uploads"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  default:
